@@ -1,9 +1,14 @@
 const express = require("express");
+const cookieParser = require('cookie-parser')
+const middle = require("./middleware")
+
 let app = express();
 app.use(express.json())
 app.use(express.urlencoded({     // to support URL-encoded bodies
   extended: true
 }))
+app.use(cookieParser())
+
 let PORT = 8080; // default port 8080
 
 const generateRandomString = () => {
@@ -23,12 +28,19 @@ let urlDatabase = {
 
 app.set("view engine", "ejs");
 
+
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.render("login");
 });
 
+app.post("/login", middle.validateCreds, (req, res) => {
+  res.redirect("/urls")
+})
+
+app.use(middle.protected)
+
 app.get("/urls", (req, res) => {
-    let templateVars = { urls: urlDatabase}
+    let templateVars = { urls: urlDatabase }
     res.render("urls_index", templateVars);
 })
 
@@ -59,6 +71,12 @@ app.post("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[req.params.shortURL])
 });
+
+app.use((err, req, res, next) => {
+  if (err) {
+    console.log(err)
+  }
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
