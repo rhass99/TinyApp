@@ -9,12 +9,19 @@
   <title>TinyApp</title>
   <% include ./partials/_header %>
 </head>
+
 <body style="font-size:20px; padding:50px;">
-    <!-- Add EJS code here -->
-    <% if(longURL && shortURL) {%>
-        <!-- This line will only show if greeting is truthy -->
-        <h1>TinyURL: <%= longURL %></h1>
-        <p><%= shortURL%></p>
-      <% }%>      
-</body>
+    <h3>ShortURL: <%= shortURL%></h3>
+    <form class="form-inline" action="/urls/<%= shortURL %>" method="POST">
+      <div class="form-group mb-2">
+        <label for="longURL">
+          <input class="form-control" type="text" name="longURL" style="width: 300px; margin: 1em" value="<%= longURL %>">
+        </label> 
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </form>
+  </body>
+
+
+
 </html>
