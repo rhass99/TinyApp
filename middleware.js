@@ -5,7 +5,7 @@ const validateCreds = (req, res, next) => {
         res.cookie('_tinyApp', {email: email, password: password})
         next() 
     } else {
-        res.redirect("/")
+        res.redirect("/login")
     }
 }
 
@@ -13,7 +13,7 @@ const protected = (req, res, next) => {
     if (req.cookies._tinyApp) {
         next()
     } else {
-        res.redirect("/")
+        res.redirect("/login")
     }
 }
 

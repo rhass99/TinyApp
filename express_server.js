@@ -28,8 +28,22 @@ let urlDatabase = {
 
 app.set("view engine", "ejs");
 
+app.get("/logout", (req, res) => {
+  res.clearCookie("_tinyApp")
+  res.redirect("/login")
+})
 
 app.get("/", (req, res) => {
+  if (req.cookies._tinyApp) {
+    res.redirect("/urls")
+  }
+  res.redirect("login");
+});
+
+app.get("/login", (req, res) => {
+  if (req.cookies._tinyApp) {
+    res.redirect("/urls")
+  }
   res.render("login");
 });
 
