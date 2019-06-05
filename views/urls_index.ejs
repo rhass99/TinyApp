@@ -16,8 +16,16 @@
     <h1>List of Available URLs</h1>
     <ul>
     <% for(let url in urls) {%>
-        <li><a href=<%= urls[url] %>><b><%= `${url}:` %></b> </a><%= `${urls[url]}` %>
-        </li> 
+        <li>
+            <a href=<%= urls[url] %>>
+                <b><%= `${url}:` %></b>
+            </a>
+            <%= urls[url] %>
+        <form class="form-inline" method="GET" action="/urls/<%= url %>/delete">
+            <button class="btn btn-secondary" type="submit">Delete</button>
+        </form>
+        </li>
+        <br/>
     <% }%>
     </ul>    
 </body>
