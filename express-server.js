@@ -6,6 +6,16 @@ app.use(express.urlencoded({     // to support URL-encoded bodies
 }))
 let PORT = 8080; // default port 8080
 
+const generateRandomString = () => {
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+  const stringLength = 6
+  let randomString = ''
+  for (let i = 0; i < stringLength; i ++) {
+    randomString += chars[(Math.floor(Math.random() * chars.length))]
+  }
+  return randomString
+}
+
 let urlDatabase = {
   "b2xVn2": "https://www.lighthouselabs.ca",
   "9sm5xK": "https://www.google.com"
@@ -23,13 +33,7 @@ app.get("/urls", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-  const stringLength = 6
-  let randomString = ''
-  for (let i = 0; i < stringLength; i ++) {
-    randomString += chars[(Math.floor(Math.random() * chars.length))]
-  }
-  urlDatabase[randomString] = req.body.longURL
+  urlDatabase[generateRandomString()] = req.body.longURL
   console.log(urlDatabase)
   res.redirect("/urls")
 })
