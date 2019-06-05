@@ -4,10 +4,10 @@ const middle = require("./middleware")
 
 let app = express();
 app.use(express.json())
-app.use(express.urlencoded({     // to support URL-encoded bodies
+app.use(express.urlencoded({
   extended: true
 }))
-app.use(cookieParser())
+app.use(cookieParser("very secred", {HttpOnly: true}))
 
 let PORT = 8080; // default port 8080
 
