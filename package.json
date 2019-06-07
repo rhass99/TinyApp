@@ -1,28 +1,33 @@
 {
   "name": "tinyapp",
   "version": "1.0.0",
-  "description": "",
+  "engines": {
+    "node": "10.16.0"
+  },
+  "description": "Simple URL shortner",
   "main": "express_server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/.bin/nodemon -L express_server.js"
+    "dev": "./node_modules/.bin/nodemon -L express_server.js",
+    "start": "node express_server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rhass99/TinyApp.git"
   },
-  "author": "",
+  "author": "Rami Hassanein",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/rhass99/TinyApp/issues"
   },
   "homepage": "https://github.com/rhass99/TinyApp#readme",
   "dependencies": {
+    "bcrypt": "^3.0.6",
     "cookie-parser": "^1.4.4",
     "ejs": "^2.6.1",
     "express": "^4.17.1"
   },
   "devDependencies": {
+    "dotenv": "^8.0.0",
     "morgan": "^1.9.1",
     "nodemon": "^1.19.1"
   }
