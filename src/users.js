@@ -17,67 +17,61 @@ const generateRandomString = (num) => {
 }
 
 const createNewSession = (userID) => {
-    console.log("create new session user ran", userID)
-    let sessionId = ''
     for (let key in users) {
         if (key === userID) {
             users[key].sessionId = encrypt.generateMD5Hash(generateRandomString(10))
-            console.log(users[key].sessionId)
-            sessionId = users[key].sessionId
+            return users[key].sessionId
         }
     }
-    console.log("create new session", sessionId)
-    return sessionId
+    return new Error("User Not registered")
 }
 
 const validateLoignUser = async({email, password}) => {
-        console.log("validating login user ran")
-        let hashedPass = ''
-        let sessionId = ''
-        let id = ''
-        for (let key in users) {
-            if (users[key].email === email) {
-                hashedPass = users[key].password_hash
-                id = key
+    console.log("validation", email, password)
+    let sessionId = ''
+    for (let key in users) {
+        if (users[key].email === email) {
+            let hashedPass = users[key].password_hash
+            let id = key
+            try {
+                const verified = await encrypt.comparePassword(password, hashedPass)
+                if (verified) {
+                    console.log(verified)
+                    sessionId = createNewSession(id)
+                    console.log(sessionId)
+                } else {
+                    return new Error("Wrong Password")
+                    //return false
+                }
+            } catch (err) {
+                return err
+                // return false
             }
+        } else {
+            return new Error("User Not registered")
+            //return false
         }
-        console.log("my id", id)
-        console.log("my hashed pass", hashedPass)
-    try {
-        let verified = await encrypt.comparePassword(password, hashedPass)
-        console.log("is verified", verified)
-        if (verified) {
-            console.log("verified")
-            sessionId = createNewSession(id)
-            console.log("inside:",sessionId)
-        }
-    } catch (err) {
-        return err
     }
+    console.log(sessionId)
     return sessionId
 }
 
 const validateSession = ({sessionId}) => {
-    let validSession = false
     for (let key in users) {
         if (users[key].sessionId === sessionId) {
-            validSession = true
+            return true
         }
     }
-    console.log("hi2", validSession)
-    return validSession
+    // log error
+    return false
+    //return new Error("Invalid session")
 }
 
 const addUser = async (id, email, password) => {
-    console.log("adding user ran")
-    let exists = false
     for (let key in users) {
         if (users[key].email === email) {
-            exists = true
+            return new Error("User exists, please login instead")
         }
-    }
-    if (exists === true) {
-        return new Error("User exists, please login instead")
     }
     let newUser = {
         id: id,
@@ -88,10 +82,10 @@ const addUser = async (id, email, password) => {
     try {
         const hashedUser = await encrypt.hashPassword(newUser)
         users[newUser.id] = hashedUser
-        return newUser.sessionId
     } catch (err) {
         return err
     }
+    return newUser.sessionId
 }
 
 module.exports = {

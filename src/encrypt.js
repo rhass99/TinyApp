@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const addPepper = (toHMAC) => {
   const pepper = process.env.PEPPER;
   if (!pepper) {
-    throw new Error('No internal Password hasher');
+    return new Error("No internal Password hasher");
   }
   const hmac = crypto.createHmac('sha1', pepper);
   hmac.update(toHMAC);
@@ -19,7 +19,7 @@ const comparePassword = async (plainPassword, hash) => {
   try {
     truth = await bcrypt.compare(pepperedPassword, hash);
   } catch (err) {
-    throw (err);
+    return new Error("Wrong Password - bcrypt");
   }
   return truth
 };
@@ -39,7 +39,7 @@ const hashPassword = async (clientUserAcc) => {
     clientUserAcc.password_hash = dataHash;
     clientUserAcc.password_strength = saltRounds;
   } catch (err) {
-    throw (err);
+    return new Error("Cannot hash password - bcrypt");
   }
   // Returns a Promise of the ClientUserAccount
   return clientUserAcc;
