@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const appErrors = require('./errors')
 
 // adds a pepper from server and returns a fixed length password.
 const addPepper = (toHMAC) => {
@@ -12,17 +13,17 @@ const addPepper = (toHMAC) => {
   return hmac.digest('hex');
 };
 
-const comparePassword = async (plainPassword, hash) => {
+const comparePassword = (plainPassword, hash) => new Promise((resolve, reject) => {
   // uses function addPepper to pepper the password before checking equality.
   const pepperedPassword = addPepper(plainPassword);
-  let truth = false
-  try {
-    truth = await bcrypt.compare(pepperedPassword, hash);
-  } catch (err) {
-    return new Error("Wrong Password - bcrypt");
-  }
-  return truth
-};
+  bcrypt.compare(pepperedPassword, hash)
+    .then((res) => {
+      resolve(res)
+    })
+    .catch((err) => {
+      reject(err)
+    })
+});
 
 // Returns a promise with updated object with new keys
 // password_salt and password_hash

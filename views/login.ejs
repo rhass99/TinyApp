@@ -8,26 +8,23 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 
     <title>Login - TinyApp Example</title>
-    <% include partials/_header %>
+    <% include partials/_loggedoutHeader %>
   </head>
 
   <body style="font-size:20px; padding:50px;">
-    <h3>Login TinyURL</h3>
+    <h3>Login</h3>
     <form action="/login" method="POST">
         <div class="form-group">
             <label for="exampleInputEmail1">Email address</label>
             <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" name="email">
-            <small id="emailHelp" class="form-text text-muted">No Spam!!</small>
+            <small id="emailHelp" class="form-text text-muted">Login to view your URLs!!</small>
         </div>
         <div class="form-group">
             <label for="exampleInputPassword1">Password</label>
             <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Login</button>
     </form>
     <br/>
-    <form action="/signup" method="GET">
-        <button class="btn btn-info" formaction="/signup" method="GET">Register</button>
-    </form>
   </body>
 </html>

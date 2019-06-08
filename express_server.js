@@ -1,7 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const middle = require("./src/middleware");
-const encrypt = require("./src/encrypt");
 const db = require("./src/users");
 
 require('dotenv').config();
@@ -17,15 +16,15 @@ let PORT = process.env.PORT || 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
-app.get("/signup", middle.doubleRegister, (req, res) => {
+app.get("/register", middle.doubleRegister, (req, res) => {
   res.render("register");
 });
 
-app.post("/signup", middle.addUser, ( req, res) => {
+app.post("/register", middle.addUser, ( req, res) => {
   res.redirect("/urls");
 })
 
-app.post("/login", middle.validateCreds, (req, res) => {
+app.post("/login", middle.validateCreds, async (req, res) => {
   res.redirect("/urls");
 })
 
@@ -40,19 +39,17 @@ app.get("/login", middle.doubleRegister, (req, res) => {
 app.use(middle.checkCookie)
 
 
-app.get("/logout", (req, res) => {
+app.get("/logout", middle.logout, (req, res) => {
   res.clearCookie("_tinyApp")
   res.redirect("/login");
 })
 
-app.get("/urls", (req, res) => {
-    let templateVars = { urls: db.urlDatabase };
-    res.render("urls_index", templateVars);
-
+app.get("/urls", middle.getUserURLs, (req, res) => {
+  let templateVars = { urls: res.locals.urls};
+  res.render("urls_index", templateVars);
 })
 
-app.post("/urls", (req, res) => {
-  db.urlDatabase[db.generateRandomString(6)] = req.body.longURL;
+app.post("/urls", middle.addNewURL, (req, res) => {
   res.redirect("/urls");
 })
 
@@ -60,23 +57,24 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 })
 
-app.get("/urls/:shortURL/delete", (req, res) => {
-  delete db.urlDatabase[req.params.shortURL];
+app.get("/urls/:shortURL/delete", middle.delURL, (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-    let templateVars = { shortURL: req.params.shortURL, longURL: db.urlDatabase[req.params.shortURL] };
+app.get("/urls/:shortURL", middle.getURL, (req, res) => {
+    let templateVars = { 
+      shortURL: req.params.shortURL, 
+      longURL: res.locals.longURL
+    };
     res.render("urls_show", templateVars);
 });
 
-app.post("/urls/:shortURL", (req, res) => {
-  db.urlDatabase[req.params.shortURL] = req.body.longURL;
+app.post("/urls/:shortURL", middle.editURL, (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  res.redirect(db.urlDatabase[req.params.shortURL]);
+app.get("/u/:shortURL", middle.getURL, (req, res) => {
+  res.redirect(res.locals.longURL);
 });
 
 

@@ -1,10 +1,6 @@
 const encrypt = require('./encrypt')
+const appErrors = require('./errors')
 const users = {}
-
-const urlDatabase = {
-    "b2xVn2": "https://www.lighthouselabs.ca",
-    "9sm5xK": "https://www.google.com"
-};
 
 const generateRandomString = (num) => {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
@@ -23,37 +19,46 @@ const createNewSession = (userID) => {
             return users[key].sessionId
         }
     }
-    return new Error("User Not registered")
+    return {message: appErrors.userNotRegistered}
 }
 
-const validateLoignUser = async({email, password}) => {
-    console.log("validation", email, password)
-    let sessionId = ''
+
+const validateLoignUser = ({email, password}) => new Promise((resolve, reject) => {
+    let user = {}
     for (let key in users) {
-        if (users[key].email === email) {
-            let hashedPass = users[key].password_hash
-            let id = key
-            try {
-                const verified = await encrypt.comparePassword(password, hashedPass)
-                if (verified) {
-                    console.log(verified)
-                    sessionId = createNewSession(id)
-                    console.log(sessionId)
-                } else {
-                    return new Error("Wrong Password")
-                    //return false
-                }
-            } catch (err) {
-                return err
-                // return false
-            }
-        } else {
-            return new Error("User Not registered")
-            //return false
+        if (users[key].email === email){
+            user = users[key]
         }
     }
-    console.log(sessionId)
-    return sessionId
+    if (!user) {
+        resolve({message: appErrors.userNotRegistered})
+    }
+    encrypt.comparePassword(password, user.password_hash)
+        .then((res) => {
+            if (res) {
+                const sessionId = createNewSession(user.id)
+                users[user.id].sessionId = sessionId
+                
+                resolve(sessionId)
+            } else {
+                resolve({message: appErrors.wrongPassword})
+            }
+        })
+        .catch((err) => {
+            //log err
+        })
+})
+
+
+const logout = ({sessionId}) => {
+    for (let id in users) {
+        if (users[id].sessionId === sessionId){
+            delete users[id].sessionId
+            return true
+        }
+    }
+
+    return false
 }
 
 const validateSession = ({sessionId}) => {
@@ -62,37 +67,93 @@ const validateSession = ({sessionId}) => {
             return true
         }
     }
-    // log error
     return false
-    //return new Error("Invalid session")
 }
 
-const addUser = async (id, email, password) => {
+const addUser = async ({email, password}) => {
+    const newId = encrypt.generateMD5Hash(email)
     for (let key in users) {
         if (users[key].email === email) {
-            return new Error("User exists, please login instead")
+            return {message: appErrors.userAlreadyExists}
         }
     }
     let newUser = {
-        id: id,
+        id: newId,
         sessionId: encrypt.generateMD5Hash(generateRandomString(10)),
         email: email,
-        password_hash: password
+        password_hash: password,
+        urlsDatabase: {}
     }
     try {
         const hashedUser = await encrypt.hashPassword(newUser)
-        users[newUser.id] = hashedUser
+        users[newId] = hashedUser
     } catch (err) {
-        return err
+        // log error
+        return {message: appErrors.serverError}
     }
-    return newUser.sessionId
+    return users[newId].sessionId
 }
+
+const getUserURLs = ({sessionId}) => {
+    for (let id in users) {    
+      if (users[id].sessionId === sessionId){
+        return users[id].urlsDatabase
+      }
+    }
+    return {}
+}
+
+const addNewURL = ({sessionId, shortURL, longURL}) => {
+    for (let id in users) {
+        if (users[id].sessionId === sessionId){
+            users[id].urlsDatabase[shortURL] = longURL
+            return users[id].urlsDatabase
+        }
+    }
+    return {message: appErrors.cannotAddURL}
+}
+
+const getURL = ({sessionId, shortURL}) => {
+    for (let id in users) {
+        if (users[id].sessionId === sessionId){
+            return users[id].urlsDatabase[shortURL]
+        }
+    }
+    return {message: appErrors.cannotEditURL}
+}
+
+const editURL = ({sessionId, shortURL, longURL}) => {
+    for (let id in users) {
+        if (users[id].sessionId === sessionId){
+            users[id].urlsDatabase[shortURL] = longURL
+            return users[id].urlsDatabase
+        }
+    }
+    return {message: appErrors.cannotEditURL}
+}
+const delURL = ({sessionId, shortURL}) => {
+    for (let id in users) {
+        if (users[id].sessionId === sessionId){
+            delete users[id].urlsDatabase[shortURL]
+            return users[id].urlsDatabase
+        }
+    }
+    return {message: appErrors.cannotDeleteURL}
+}
+
+
 
 module.exports = {
     users,
-    urlDatabase,
     addUser,
     generateRandomString,
     validateLoignUser,
-    validateSession
+    //validateLoignUser2,
+    validateSession,
+    getUserURLs,
+    addNewURL,
+    getURL,
+    editURL,
+    delURL,
+    logout
 }
