@@ -9,7 +9,8 @@ const ERROR_TYPES = {
   cannotAddURL: "Cannot Add URL",
   cannotDeleteURL: "Cannot Delete URL",
   userRegisteredAlready: "User Registered Already",
-  userLoggedinAlready: "User Loggedin Already"
+  userLoggedinAlready: "User Loggedin Already",
+  urlDoesntExist: "URL doesn't Exist"
 }
 
 module.exports = ERROR_TYPES;

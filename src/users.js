@@ -51,7 +51,8 @@ const validateLoignUser = async ({ email, password }) => {
         }
     } catch (err) {
         // log this error
-        return new Error(appErrors.serverError)
+        //return new Error(appErrors.serverError)
+        throw ({message: appErrors.wrongPassword})
     }
     return sessionId
 }
@@ -71,7 +72,7 @@ const logout = ({ sessionId }) => {
 const validateSession = ({ sessionId }) => {
     for (let key in users) {
         if (users[key].sessionId === sessionId) {
-            return true
+            return users[key].email
         }
     }
     throw ({ message: appErrors.invalidSession })
@@ -157,6 +158,18 @@ const delURL = ({ sessionId, shortURL }) => {
     throw { message: appErrors.cannotDeleteURL }
 }
 
+const visitURL = (shortURL) => {
+    for (let id in users) {
+        if (users[id].urlsDatabase.hasOwnProperty(shortURL)) {
+            console.log(shortURL)
+            console.log(users[id].urlsDatabase[shortURL])
+            return users[id].urlsDatabase[shortURL]
+        } else {
+            throw { message: appErrors.urlDoesntExist }
+        }
+    }
+}
+
 module.exports = {
     users,
     addUser,
@@ -165,6 +178,7 @@ module.exports = {
     validateSession,
     getUserURLs,
     addNewURL,
+    visitURL,
     getURL,
     editURL,
     delURL,

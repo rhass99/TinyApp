@@ -17,6 +17,9 @@ let PORT = process.env.PORT || 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+// Everyone can visit the shortURL
+app.get("/u/:shortURL", middle.visitURL, (req, res) => {
+});
 
 app.get("/register", middle.doubleRegister, (req, res) => {
   res.render("register");
@@ -75,12 +78,6 @@ app.get("/urls/:shortURL", middle.getURL, (req, res) => {
 app.post("/urls/:shortURL", middle.editURL, (req, res) => {
   res.redirect("/urls");
 });
-
-app.get("/u/:shortURL", middle.getURL, (req, res) => {
-  res.redirect(res.locals.longURL);
-});
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

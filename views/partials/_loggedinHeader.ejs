@@ -8,5 +8,10 @@
     </li>
 </ul>
 <% if (locals.errors) {%>
-    <div class="alert alert-warning"><%= errors %></div>
+    <div class="alert alert-danger"><%= errors %></div>
+<% }; %>
+<% if (locals.useremail) {%>
+</br>
+    <div class="alert alert-info">Logged in as: <%= useremail %></div>
+</br>
 <% }; %>

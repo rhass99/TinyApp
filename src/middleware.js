@@ -30,7 +30,8 @@ const authenticate = (req, res, next) => {
   } else {
     try {
       let valid = db.validateSession(req.cookies._tinyApp)
-      if (valid === true) {
+      if (valid) {
+        res.locals.useremail = valid
         next()
       }
     } catch (err) {
@@ -102,8 +103,19 @@ const delURL = (req, res, next) => {
   next()
 }
 
+const visitURL = (req, res, next) => {
+  let longURL = ''
+  try {
+    longURL = db.visitURL(req.params.shortURL)
+    res.redirect(longURL)
+  } catch (err) {
+    res.redirect('/login?error=' + encodeURIComponent(err.message))
+  }
+}
+
 module.exports = {
   validateCreds,
+  visitURL,
   addUser,
   authenticate,
   doubleRegister,
