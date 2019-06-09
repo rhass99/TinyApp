@@ -13,17 +13,23 @@ const addPepper = (toHMAC) => {
   return hmac.digest('hex');
 };
 
-const comparePassword = (plainPassword, hash) => new Promise((resolve, reject) => {
+// Returns a promise
+// Compares plain and hashed password
+const comparePassword = async (plainPassword, hash) => {
+  if (!hash) {
+    return new Error(appErrors.userNotRegistered)
+  }
   // uses function addPepper to pepper the password before checking equality.
   const pepperedPassword = addPepper(plainPassword);
-  bcrypt.compare(pepperedPassword, hash)
-    .then((res) => {
-      resolve(res)
-    })
-    .catch((err) => {
-      reject(err)
-    })
-});
+  let ok = false
+  try {
+    ok = await bcrypt.compare(pepperedPassword, hash)
+  } catch (err) {
+    return err
+  }
+  return ok
+}
+
 
 // Returns a promise with updated object with new keys
 // password_salt and password_hash
@@ -46,17 +52,7 @@ const hashPassword = async (clientUserAcc) => {
   return clientUserAcc;
 };
 
-// // Check for account password - used in UserAccount middleware
-// const checkUserAccountPass = async (plain, hash) => {
-//   let isRegistered = false;
-//   try {
-//     isRegistered = await comparePassword(plain, hash);
-//   } catch (err) {
-//     throw err;
-//   }
-//   return isRegistered;
-// };
-
+// Generares a unique MD5 Hash for the user ID from user Email
 const generateMD5Hash = (inputToHash) => {
     let MD5Hash = crypto.createHash('md5')
     MD5Hash.update(inputToHash)

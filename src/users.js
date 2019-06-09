@@ -2,16 +2,18 @@ const encrypt = require('./encrypt')
 const appErrors = require('./errors')
 const users = {}
 
+// Generates a random string for the shortURL
 const generateRandomString = (num) => {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
     const stringLength = num
     let randomString = ''
-    for (let i = 0; i < stringLength; i ++) {
-      randomString += chars[(Math.floor(Math.random() * chars.length))]
+    for (let i = 0; i < stringLength; i++) {
+        randomString += chars[(Math.floor(Math.random() * chars.length))]
     }
     return randomString
 }
 
+// Creates a new session ID to be stored on the database
 const createNewSession = (userID) => {
     for (let key in users) {
         if (key === userID) {
@@ -19,62 +21,70 @@ const createNewSession = (userID) => {
             return users[key].sessionId
         }
     }
-    return {message: appErrors.userNotRegistered}
+    //return new Error(appErrors.userNotRegistered)
+    throw ({ message: appErrors.userNotRegistered })
 }
 
-
-const validateLoignUser = ({email, password}) => new Promise((resolve, reject) => {
+// Validates if user is logged in
+const validateLoignUser = async ({ email, password }) => {
+    if (!users) {
+        throw ({ message: appErrors.userNotRegistered })
+    }
     let user = {}
     for (let key in users) {
-        if (users[key].email === email){
+        if (users[key].email === email) {
             user = users[key]
         }
     }
     if (!user) {
-        resolve({message: appErrors.userNotRegistered})
+        throw ({ message: appErrors.userNotRegistered })
     }
-    encrypt.comparePassword(password, user.password_hash)
-        .then((res) => {
-            if (res) {
-                const sessionId = createNewSession(user.id)
-                users[user.id].sessionId = sessionId
-                
-                resolve(sessionId)
-            } else {
-                resolve({message: appErrors.wrongPassword})
-            }
-        })
-        .catch((err) => {
-            //log err
-        })
-})
+    let verified = false
+    let sessionId = ''
+    try {
+        verified = await encrypt.comparePassword(password, user.password_hash)
+        if (verified) {
+            sessionId = createNewSession(user.id)
+            users[user.id].sessionId = sessionId;
+        } else {
+            throw ({ message: appErrors.wrongPassword })
+        }
+    } catch (err) {
+        // log this error
+        return new Error(appErrors.serverError)
+    }
+    return sessionId
+}
 
-
-const logout = ({sessionId}) => {
+// Logs user out and clears session and cookie
+const logout = ({ sessionId }) => {
     for (let id in users) {
-        if (users[id].sessionId === sessionId){
+        if (users[id].sessionId === sessionId) {
             delete users[id].sessionId
             return true
         }
     }
-
     return false
 }
 
-const validateSession = ({sessionId}) => {
+// Validates user session before passing user to protected routes
+const validateSession = ({ sessionId }) => {
     for (let key in users) {
         if (users[key].sessionId === sessionId) {
             return true
         }
     }
-    return false
+    throw ({ message: appErrors.invalidSession })
 }
 
-const addUser = async ({email, password}) => {
+// Adds new user to database
+// Creates a new session
+// Hashes password
+const addUser = async ({ email, password }) => {
     const newId = encrypt.generateMD5Hash(email)
     for (let key in users) {
         if (users[key].email === email) {
-            return {message: appErrors.userAlreadyExists}
+            throw ({ message: appErrors.userRegisteredAlready })
         }
     }
     let newUser = {
@@ -88,67 +98,70 @@ const addUser = async ({email, password}) => {
         const hashedUser = await encrypt.hashPassword(newUser)
         users[newId] = hashedUser
     } catch (err) {
-        // log error
-        return {message: appErrors.serverError}
+        // log this error
+        return new Error(appErrors.serverError)
     }
     return users[newId].sessionId
 }
 
-const getUserURLs = ({sessionId}) => {
-    for (let id in users) {    
-      if (users[id].sessionId === sessionId){
-        return users[id].urlsDatabase
-      }
+// Gets list of user URLs from DB
+const getUserURLs = ({ sessionId }) => {
+    for (let id in users) {
+        if (users[id].sessionId === sessionId) {
+            return users[id].urlsDatabase
+        }
     }
-    return {}
+    throw { message: appErrors.userNotLoggedIn }
 }
 
-const addNewURL = ({sessionId, shortURL, longURL}) => {
+// Adds new URL to User
+const addNewURL = ({ sessionId, shortURL, longURL }) => {
     for (let id in users) {
-        if (users[id].sessionId === sessionId){
+        if (users[id].sessionId === sessionId) {
             users[id].urlsDatabase[shortURL] = longURL
             return users[id].urlsDatabase
         }
     }
-    return {message: appErrors.cannotAddURL}
+    throw { message: appErrors.cannotAddURL }
 }
 
-const getURL = ({sessionId, shortURL}) => {
+// Gets the LongURL corresponding to ShortURL
+const getURL = ({ sessionId, shortURL }) => {
     for (let id in users) {
-        if (users[id].sessionId === sessionId){
+        if (users[id].sessionId === sessionId) {
             return users[id].urlsDatabase[shortURL]
         }
     }
-    return {message: appErrors.cannotEditURL}
+    throw { message: appErrors.cannotAddURL }
 }
 
-const editURL = ({sessionId, shortURL, longURL}) => {
+// Edits LongURL
+const editURL = ({ sessionId, shortURL, longURL }) => {
     for (let id in users) {
-        if (users[id].sessionId === sessionId){
+        if (users[id].sessionId === sessionId) {
             users[id].urlsDatabase[shortURL] = longURL
             return users[id].urlsDatabase
         }
     }
-    return {message: appErrors.cannotEditURL}
+    throw { message: appErrors.cannotEditURL }
 }
-const delURL = ({sessionId, shortURL}) => {
+
+// Delets URL
+const delURL = ({ sessionId, shortURL }) => {
     for (let id in users) {
-        if (users[id].sessionId === sessionId){
+        if (users[id].sessionId === sessionId) {
             delete users[id].urlsDatabase[shortURL]
             return users[id].urlsDatabase
         }
     }
-    return {message: appErrors.cannotDeleteURL}
+    throw { message: appErrors.cannotDeleteURL }
 }
-
-
 
 module.exports = {
     users,
     addUser,
     generateRandomString,
     validateLoignUser,
-    //validateLoignUser2,
     validateSession,
     getUserURLs,
     addNewURL,

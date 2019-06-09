@@ -1,42 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <title>TinyApp</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+        integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <title>TinyApp</title>
     <% include ./partials/_loggedinHeader %>
 </head>
+
 <body style="font-size:20px; padding:50px;">
+
     <body style="font-size:20px; padding:50px;">
         <!-- Add EJS code here -->
-        <h1>List of Available URLs</h1>
+        <h3>List of Available URLs</h3>
         <ul>
-        <% for(let url in urls) {%>
+            <% for(let url in urls) {%>
             <li>
-            <form method="GET" action="/urls/<%= url %>/delete">
-                <div class="form-row align-items-center">
-                    <div class="col-auto">
-                        <a href="/urls/<%= url%>">
-                            <b><%= url %></b>
-                        </a>
-                        <%= urls[url] %>
+                <form method="GET" action="/urls/<%= url %>/delete">
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            <a href="/urls/<%= url%>">
+                                <b><%= url %></b>
+                            </a>
+                            <%= urls[url] %>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" type="submit" formaction="/urls/<%= url %>">Edit</button>
+
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </div>
                     </div>
-                    <div class="col-auto">
-                        <button class="btn btn-primary" type="submit" formaction="/urls/<%= url %>">Edit</button>
-                        
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-danger" type="submit">Delete</button>
-                    </div>
-                </div>
-            </form>
+                </form>
             </li>
-            <br/>
-        <% }%>
-        </ul>    
+            <br />
+            <% }%>
+        </ul>
     </body>
 </body>
+
 </html>

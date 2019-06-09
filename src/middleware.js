@@ -1,40 +1,55 @@
 const db = require("./users")
-const encrypt = require("./encrypt")
 const appErrors = require('./errors')
 
 const addUser = async (req, res, next) => {
-  const sessionId = await db.addUser(req.body)
-  if (!sessionId.message) {
-    res.cookie('_tinyApp', {sessionId})
-  } else {
-    res.locals.errors = sessionId.message;
+  let sessionId = ''
+  try {
+    sessionId = await db.addUser(req.body)
+    res.cookie('_tinyApp', { sessionId })
+    next()
+  } catch (err) {
+    res.redirect('/login?error=' + encodeURIComponent(err.message))
   }
-  next()
 }
 
 const validateCreds = async (req, res, next) => {
-  const sessionId = await db.validateLoignUser(req.body)
-  if (!sessionId.message) {
+  let sessionId = ''
+  try {
+    sessionId = await db.validateLoignUser(req.body)
     res.cookie("_tinyApp", { sessionId })
-  } else {
+    next()
+  } catch (err) {
     res.clearCookie("_tinyApp")
-    res.locals.errors = sessionId.message
+    res.redirect('/login?error=' + encodeURIComponent(err.message))
   }
-  next()
 }
 
-const checkCookie = (req, res, next) => {
+const authenticate = (req, res, next) => {
   if (!req.cookies._tinyApp) {
-    res.locals.errors = appErrors.userNotLoggedIn;
-    res.redirect('/login')
-  } else if (!db.validateSession(req.cookies._tinyApp)){
-    res.locals.errors = appErrors.userNotLoggedIn
-    res.clearCookie("_tinyApp")
-    res.redirect('/login')
+    res.redirect('/login?error=' + encodeURIComponent(appErrors.userNotLoggedIn))
   } else {
-    next()
+    try {
+      let valid = db.validateSession(req.cookies._tinyApp)
+      if (valid === true) {
+        next()
+      }
+    } catch (err) {
+      res.clearCookie("_tinyApp")
+      res.redirect('/login?error=' + encodeURIComponent(err.message))
+    }
   }
-} 
+}
+
+const getUserURLs = (req, res, next) => {
+  let urls = {}
+  try {
+    urls = db.getUserURLs(req.cookies._tinyApp)
+    res.locals.urls = urls
+    next()
+  } catch (err) {
+    res.redirect('/login?error=' + encodeURIComponent(err.message))
+  }
+}
 
 const doubleRegister = (req, res, next) => {
   if (req.cookies._tinyApp && db.validateSession(req.cookies._tinyApp)) {
@@ -44,25 +59,12 @@ const doubleRegister = (req, res, next) => {
   }
 }
 
-const logout = (req, res, next) => {
-  if (!db.logout(req.cookies._tinyApp)) {
-    res.locals.errors = appErrors.serverError
-  }
-  next()
-}
-
-const getUserURLs = (req, res, next) => {
-  let urls = db.getUserURLs(req.cookies._tinyApp)
-  res.locals.urls = urls
-  next()
-}
-
 const addNewURL = (req, res, next) => {
   const shortURL = db.generateRandomString(6)
   const request = {
-    sessionId:req.cookies._tinyApp.sessionId,
-    shortURL:shortURL, 
-    longURL:req.body.longURL,
+    sessionId: req.cookies._tinyApp.sessionId,
+    shortURL: shortURL,
+    longURL: req.body.longURL,
   }
   let urls = db.addNewURL(request)
   res.locals.urls = urls
@@ -101,14 +103,13 @@ const delURL = (req, res, next) => {
 }
 
 module.exports = {
-    validateCreds,
-    addUser,
-    doubleRegister,
-    checkCookie,
-    getUserURLs,
-    addNewURL,
-    getURL,
-    editURL,
-    delURL,
-    logout
+  validateCreds,
+  addUser,
+  authenticate,
+  doubleRegister,
+  getUserURLs,
+  addNewURL,
+  getURL,
+  editURL,
+  delURL,
 }

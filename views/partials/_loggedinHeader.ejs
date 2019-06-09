@@ -7,11 +7,6 @@
         <a href="/logout">Logout</a>
     </li>
 </ul>
-
 <% if (locals.errors) {%>
-    <h3>Errors here</h3>
-    <div class="notification"><%= locals.errors %></div>
+    <div class="alert alert-warning"><%= errors %></div>
 <% }; %>
-
-<br/>
-<br/>
